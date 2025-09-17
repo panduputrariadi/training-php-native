@@ -1,4 +1,7 @@
 <?php
+namespace PanduputragmailCom\PhpNative\Database;
+
+use mysqli;
 class Database
 {
     private $host     = 'localhost';
