@@ -15,22 +15,52 @@ class Routing
         ];
     }
 
+    // old function without params
+    // public function run()
+    // {
+    //     $method = $_SERVER['REQUEST_METHOD'];
+    //     $uri    = $_SERVER['REQUEST_URI'];
+
+    //     foreach ($this->routes as $route) {
+    //         if ($route['method'] != $method) {
+    //             continue;
+    //         }
+
+    //         if ($route['path'] == $uri) {
+    //             return call_user_func($route['callback']);
+    //         }
+    //     }
+
+    //     header('HTTP/1.1 404 Not Found');
+    //     die('404 Not Found');
+    // }
     public function run()
     {
         $method = $_SERVER['REQUEST_METHOD'];
-        $uri    = $_SERVER['REQUEST_URI'];
+        $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
         foreach ($this->routes as $route) {
             if ($route['method'] != $method) {
                 continue;
             }
+            
+            $regexPattern = preg_replace_callback('/\{(\w+)\}/', function ($matches) {
+                return '([^/]+)';
+            }, $route['path']);
 
-            if ($route['path'] == $uri) {
-                return call_user_func($route['callback']);
+            if (preg_match("#^{$regexPattern}$#", $uri, $params)) {
+                array_shift($params);
+
+                if (is_callable($route['callback'])) {
+                    return call_user_func_array($route['callback'], $params);
+                } else {
+                    list($controller, $method) = $route['callback'];
+                    $instance = new $controller();
+                    echo $instance->$method(...$params);
+                    // return $instance->$method(...$params);
+                }
             }
         }
-
-        header('HTTP/1.1 404 Not Found');
-        die('404 Not Found');
     }
+    
 }

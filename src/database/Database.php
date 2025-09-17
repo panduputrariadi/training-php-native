@@ -12,7 +12,7 @@ class Database
     private $port     = 3306;
     private $connection;
 
-    public function __construct()
+    public function __construct($silent = false)
     {
         $connect = new mysqli(
             $this->host,
@@ -28,7 +28,10 @@ class Database
 
         $this->connection = $connect;
 
-        echo "Berhasil terkoneksi";
+        // echo "Berhasil terkoneksi";
+        if(!$silent){
+            echo "berhasil terkoneksi";
+        }
     }
 
     public function connection()
