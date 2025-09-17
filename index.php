@@ -1,3 +1,5 @@
 <?php
-    echo "welcome";
+    require 'src/database/connection.php';
+    $db = new Database();
+    $db->connection();
 ?>
