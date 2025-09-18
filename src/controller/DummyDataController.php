@@ -2,14 +2,16 @@
 
 namespace PanduputragmailCom\PhpNative\Controller;
 
+use PanduputragmailCom\PhpNative\lib\BodyRequest;
 use PanduputragmailCom\PhpNative\lib\Response;
 use PanduputragmailCom\PhpNative\lib\Validator;
 use PanduputragmailCom\PhpNative\Model\DummyData;
+use PanduputragmailCom\PhpNative\Queries\DummyDataQueries;
 
 class DummyDataController
 {
     public function GetDataDummy(){
-        $dummyData = (new DummyData)->findAll();
+        $dummyData = (new DummyDataQueries(new DummyData()))->getAllData();
         if(empty($dummyData)){
             return Response::success([], 'No Data Available');
         }
@@ -17,20 +19,19 @@ class DummyDataController
         return Response::success($dummyData, 'Success Retrive Data');
     }
     public function store(){
-        $data = $_POST;
+        $data = BodyRequest::bodyData();       
 
-        // $errors = Validator($data, [
-        //     'name'  => 'required|string|max:50',
-        //     'email' => 'required|email',
-        // ]);
+        $validator = new Validator($data, [
+            'name'  => 'required|string|max:50',            
+        ]);
 
-        // if (!empty($errors)) {
-        //     return Response::badRequest(['errors' => $errors], 'Validation failed');
-        // }
-
+        if ($validator->fails()) {
+            return Response::badRequest(['errors' => $validator->messages()], 'Validation failed');
+        }
 
         $dummyData = new DummyData();
-        $response = $dummyData->storeData($data);
+        // $response = $dummyData->storeData($data);
+        $response = (new DummyDataQueries($dummyData))->storeData($data);
 
         return Response::created($response, 'Success Store Data');
     }
