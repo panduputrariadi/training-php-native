@@ -6,44 +6,26 @@ class Routing
 {
     private $routes = [];
 
-    public function add(string $method, string $path, $callback)
-    {
+    // menambahkan array dari middleware
+    public function add(string $method, string $path, $callback, array $middlewares = []){
         $this->routes[] = [
-            'method'   => $method,
-            'path'     => $path,
-            'callback' => $callback
+            'method'      => $method,
+            'path'        => $path,
+            'callback'    => $callback,
+            'middlewares' => $middlewares
         ];
     }
 
-    // old function without params
-    // public function run()
-    // {
-    //     $method = $_SERVER['REQUEST_METHOD'];
-    //     $uri    = $_SERVER['REQUEST_URI'];
-
-    //     foreach ($this->routes as $route) {
-    //         if ($route['method'] != $method) {
-    //             continue;
-    //         }
-
-    //         if ($route['path'] == $uri) {
-    //             return call_user_func($route['callback']);
-    //         }
-    //     }
-
-    //     header('HTTP/1.1 404 Not Found');
-    //     die('404 Not Found');
-    // }
-    public function run()
-    {
+    public function run() {
         $method = $_SERVER['REQUEST_METHOD'];
         $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+        // loop semua route
         foreach ($this->routes as $route) {
             if ($route['method'] != $method) {
                 continue;
             }
-            
+
             $regexPattern = preg_replace_callback('/\{(\w+)\}/', function ($matches) {
                 return '([^/]+)';
             }, $route['path']);
@@ -51,16 +33,38 @@ class Routing
             if (preg_match("#^{$regexPattern}$#", $uri, $params)) {
                 array_shift($params);
 
-                if (is_callable($route['callback'])) {
-                    return call_user_func_array($route['callback'], $params);
-                } else {
-                    list($controller, $method) = $route['callback'];
-                    $instance = new $controller();
-                    echo $instance->$method(...$params);
-                    // return $instance->$method(...$params);
+                $request = [
+                    'method' => $method,
+                    'uri'    => $uri,
+                    'params' => $params,
+                ];
+
+                $callback = function($req) use ($route, $params) {
+                    // kalau callbacknya sebuah function maka jalankan, jika tidak maka jalankan controller
+                    if (is_callable($route['callback'])) {
+                        return call_user_func_array($route['callback'], $params);
+                    } else {
+                        list($controller, $method) = $route['callback'];
+                        $instance = new $controller();
+                        // return $instance->$method(...$params);
+                        echo $instance->$method(...$params);
+                    }
+                };
+
+                // jalankan middleware jika menambahkan middleware
+                foreach (array_reverse($route['middlewares']) as $middleware) {
+                    $instance = new $middleware();
+                    $next = $callback;
+                    $callback = function($req) use ($instance, $next) {
+                        return $instance->handle($req, $next);
+                    };
                 }
+
+                return $callback($request);
             }
         }
+        
+        http_response_code(404);
+        echo "404 Not Found";
     }
-    
 }

@@ -6,7 +6,7 @@ use PanduputragmailCom\PhpNative\lib\BodyRequest;
 use PanduputragmailCom\PhpNative\lib\Response;
 use PanduputragmailCom\PhpNative\lib\Validator;
 use PanduputragmailCom\PhpNative\Model\DummyData;
-use PanduputragmailCom\PhpNative\Queries\DummyDataQueries;
+use PanduputragmailCom\PhpNative\model\queries\DummyDataQueries;
 
 class DummyDataController
 {
