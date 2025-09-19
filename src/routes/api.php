@@ -4,6 +4,7 @@
 use PanduputragmailCom\PhpNative\Controller\Controller;
 use PanduputragmailCom\PhpNative\Controller\DummyDataController;
 use PanduputragmailCom\PhpNative\Lib\Routing;
+use PanduputragmailCom\PhpNative\middleware\AuthMiddleware;
 
     class Api{
         public static function registerRoutes(Routing $router)
@@ -13,7 +14,14 @@ use PanduputragmailCom\PhpNative\Lib\Routing;
             });
 
             $router->add('GET', '/connect-db', [Controller::class, 'ConnectDB']);
-            $router->add('GET', '/get-dummy-data', [DummyDataController::class, 'GetDataDummy']);
+
+            // without middleware
+            // $router->add('GET', '/get-dummy-data', [DummyDataController::class, 'GetDataDummy']);
+
+            //with middleware
+            $router->add('GET', '/get-dummy-data', [DummyDataController::class, 'GetDataDummy'], [
+                AuthMiddleware::class
+            ]);
             $router->add('POST', '/store-dummy-data', [DummyDataController::class, 'store']);
             
             return $router;

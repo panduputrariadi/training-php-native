@@ -1,6 +1,6 @@
 <?php
 
-namespace PanduputragmailCom\PhpNative\Queries;
+namespace PanduputragmailCom\PhpNative\model\queries;
 
 use PanduputragmailCom\PhpNative\Database\Database;
 use PanduputragmailCom\PhpNative\Model\DummyData;
