@@ -23,6 +23,7 @@ use PanduputragmailCom\PhpNative\middleware\AuthMiddleware;
                 AuthMiddleware::class
             ]);
             $router->add('POST', '/store-dummy-data', [DummyDataController::class, 'store']);
+            $router->add('GET', '/get-dummy-data-query-builder', [DummyDataController::class, 'getDummyDataUsingQueryBuilder']);
             
             return $router;
         }

@@ -35,4 +35,13 @@ class DummyDataController
 
         return Response::created($response, 'Success Store Data');
     }
+
+    public function getDummyDataUsingQueryBuilder(): array {
+        $data = (new DummyDataQueries(new DummyData()))->getAllDataUsingQueryBuilder();
+        if(empty($data)){
+            return Response::success([], 'No Data Available');
+        }
+
+        return Response::success($data, 'Success Retrive Data');
+    }
 }
