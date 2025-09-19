@@ -1,26 +1,17 @@
 <?php
 namespace PanduputragmailCom\PhpNative\Lib;
-use PanduputragmailCom\PhpNative\Controller\Controller;
-use PanduputragmailCom\PhpNative\Controller\DummyDataController;
+
+use PanduputragmailCom\PhpNative\lib\Logger;
+use PanduputragmailCom\PhpNative\Lib\Routing;
+use PanduputragmailCom\PhpNative\Routes\Api;
 
 require __DIR__.'/../vendor/autoload.php';
+require __DIR__.'/../src/lib/Logger.php';
+
+Logger::init(__DIR__ . '/../storage/logger/app.json.log');
 
 $router = new Routing();
-$router->add('GET', '/', function() {
-    return 'Hello world';
-});
 
-// $router->add('GET', '/connect-db', function() {
-//     $controller = new Controller();
-//     $connection = $controller->ConnectDB();
-    
-//     // Jika ingin menampilkan pesan sukses
-//     return $connection;
-// });
-$router->add('GET', '/connect-db', [Controller::class, 'ConnectDB']);
-$router->add('GET', '/get-dummy-data', [DummyDataController::class, 'GetDataDummy']);
-$router->add('POST', '/store-dummy-data', [DummyDataController::class, 'store']);
+$router = Api::registerRoutes($router);
 
 $router->run();
-
-// echo "Hello world";

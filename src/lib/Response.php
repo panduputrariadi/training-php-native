@@ -32,6 +32,10 @@ class Response {
         self::json($data, $message, 400);
     }
 
+    public static function unauthorized(string $message = 'Unauthorized'){
+        self::json([], $message, 401);
+    }
+
 
     public static function serverError(string $message = 'Internal Server Error'){
         self::json([], $message, 500);

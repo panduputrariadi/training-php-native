@@ -6,7 +6,7 @@ use PanduputragmailCom\PhpNative\lib\BodyRequest;
 use PanduputragmailCom\PhpNative\lib\Response;
 use PanduputragmailCom\PhpNative\lib\Validator;
 use PanduputragmailCom\PhpNative\Model\DummyData;
-use PanduputragmailCom\PhpNative\Queries\DummyDataQueries;
+use PanduputragmailCom\PhpNative\model\queries\DummyDataQueries;
 
 class DummyDataController
 {
@@ -34,5 +34,14 @@ class DummyDataController
         $response = (new DummyDataQueries($dummyData))->storeData($data);
 
         return Response::created($response, 'Success Store Data');
+    }
+
+    public function getDummyDataUsingQueryBuilder(): array {
+        $data = (new DummyDataQueries(new DummyData()))->getAllDataUsingQueryBuilder();
+        if(empty($data)){
+            return Response::success([], 'No Data Available');
+        }
+
+        return Response::success($data, 'Success Retrive Data');
     }
 }
