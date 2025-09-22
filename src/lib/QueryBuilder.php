@@ -9,6 +9,9 @@ class QueryBuilder {
     private array $bindings = [];
     private array $joins = [];
     private ?string $primaryKey = 'id';
+
+    // eager loading like orm laravel (?)
+    private array $eagerLoads = [];
     
 
     public function table(string $table): self  
@@ -110,4 +113,100 @@ class QueryBuilder {
 
         return $data;
     }
+
+    private function resetQuery(): void
+    {
+        $this->query = '';
+        $this->bindings = [];
+        $this->joins = [];
+        $this->eagerLoads = [];
+    }
+
+    private function execute(): bool
+    {
+        $database = new Database(silent: true);
+        $connection = $database->connection();
+
+        $sql = $this->query;
+        $values = $this->bindings;
+
+        foreach ($values as $key => $value) {
+            $sql = str_replace($key, '?', $sql);
+        }
+
+        $stmt = $connection->prepare($sql);
+        if (!$stmt) {
+            throw new \Exception("Prepare failed: " . $connection->error);
+        }
+
+        if (!empty($values)) {
+            $types = str_repeat("s", count($values));
+            $stmt->bind_param($types, ...array_values($values));
+        }
+
+        $success = $stmt->execute();
+        $this->resetQuery(); // bersihkan setelah eksekusi
+        return $success;
+    }
+
+    public function insert(array $data): bool
+    {
+        $keys = array_keys($data);
+        $values = array_values($data);
+        $placeholders = array_map(fn($k) => ":$k", $keys);
+
+        $fieldList = implode(', ', $keys);
+        $placeholderList = implode(', ', $placeholders);
+
+        $this->query = "INSERT INTO {$this->table} ($fieldList) VALUES ($placeholderList)";
+
+        foreach ($keys as $key) {
+            $this->bindings[":$key"] = $data[$key];
+        }
+
+        return $this->execute();
+    }
+
+    public function insertGetId(array $data): int
+    {
+        $keys = array_keys($data);
+        $placeholders = array_map(fn($k) => ":$k", $keys);
+
+        $fieldList = implode(', ', $keys);
+        $placeholderList = implode(', ', $placeholders);
+
+        $this->query = "INSERT INTO {$this->table} ($fieldList) VALUES ($placeholderList)";
+
+        foreach ($keys as $key) {
+            $this->bindings[":$key"] = $data[$key];
+        }
+
+        $database = new Database(silent: true);
+        $connection = $database->connection();
+
+        $sql = $this->query;
+        foreach ($this->bindings as $key => $value) {
+            $sql = str_replace($key, '?', $sql);
+        }
+
+        $stmt = $connection->prepare($sql);
+        if (!$stmt) {
+            throw new \Exception("Prepare failed: " . $connection->error);
+        }
+
+        if (!empty($this->bindings)) {
+            $types = str_repeat("s", count($this->bindings));
+            $stmt->bind_param($types, ...array_values($this->bindings));
+        }
+
+        if (!$stmt->execute()) {
+            throw new \Exception("Execute failed: " . $stmt->error);
+        }
+
+        $insertId = $connection->insert_id;
+        $this->resetQuery();
+
+        return $insertId;
+    }
+
 }
