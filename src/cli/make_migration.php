@@ -1,7 +1,7 @@
 <?php
 
 // Autoload composer
-require __DIR__ . '/../../vendor/autoload.php';
+require __DIR__ . '/../../booststrap/app.php';
 
 function studly_case(string $value): string {
     return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $value)));

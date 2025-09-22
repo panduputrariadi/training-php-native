@@ -1,7 +1,6 @@
 <?php
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/src/booststrap/app.php';
 
-use PanduputragmailCom\PhpNative\lib\Migration;
 
 $command = $argv[1] ?? null;
 
