@@ -1,0 +1,53 @@
+<?php
+
+require __DIR__ . '/booststrap/app.php';
+
+$command = $argv[1] ?? '--help';
+
+if ($command === '--help' || $command === '-h') {
+    echo "PHP Native CLI Tool\n";
+    echo "====================\n\n";
+    echo "Available commands:\n";
+    echo "  serve             Start the PHP development server\n";
+    echo "  migrate:up        Run all database migrations\n";
+    echo "  migrate:down      Rollback all database migrations\n";
+    echo "  make:migration    Create a new database migration\n";
+    echo "  make:model        Create a new database model\n";
+    echo "  make:queries      Create a new queries to model. ex: get data, get one data\n";
+    echo "  make:controller   Create a new controller.\n";
+    echo "  --help (-h)       Show this help message\n";
+    exit(0);
+}
+
+switch ($command) {
+    case 'serve':
+        echo "Starting PHP development server at http://localhost:2000\n";
+        echo "Press Ctrl+C to stop.\n\n";
+        passthru('php -S localhost:2000 -t src/');
+        break;
+
+    case 'migrate:up':
+    case 'migrate:down':        
+        require __DIR__ . '/migrate';
+        break;
+    case 'make:migration':        
+        require __DIR__ . '/src/cli/make_migration.php';
+        break;
+
+    case 'make:model':        
+        require __DIR__ . '/src/cli/make_model.php';
+        break;
+
+    case 'make:queries':        
+        require __DIR__ . '/src/cli/make_queries.php';
+        break;
+
+    case 'make:controller':        
+        require __DIR__ . '/src/cli/make_controller.php';
+        break;
+
+    default:
+        echo "❌ Unknown command: $command\n";
+        echo "Run 'php artisan --help' to see available commands.\n";
+        exit(1);
+}

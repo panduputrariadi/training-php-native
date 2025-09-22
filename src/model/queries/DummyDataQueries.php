@@ -1,8 +1,9 @@
 <?php
 
-namespace PanduputragmailCom\PhpNative\Queries;
+namespace PanduputragmailCom\PhpNative\model\queries;
 
 use PanduputragmailCom\PhpNative\Database\Database;
+use PanduputragmailCom\PhpNative\lib\QueryBuilder;
 use PanduputragmailCom\PhpNative\Model\DummyData;
 
 class DummyDataQueries extends Database {
@@ -26,6 +27,17 @@ class DummyDataQueries extends Database {
         }
 
         return [];
+    }
+
+    public function getAllDataUsingQueryBuilder(): array {
+        $queryBuilder = new QueryBuilder();
+
+        $data = $queryBuilder
+            ->table($this->model->getTable())
+            ->select(['*'])
+            ->get();
+
+        return $data;
     }
 
     public function getOneData($id) {
