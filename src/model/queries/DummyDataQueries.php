@@ -40,14 +40,28 @@ class DummyDataQueries extends Database {
         return $data;
     }
 
-    public function getOneData($id) {
-        $sql = "SELECT * FROM {$this->model->getTable()} WHERE id = ?";
+    public function getOneData($id): array
+    {
+        $table = $this->model->getTable();
+                
+        $sql = "SELECT * FROM `$table` WHERE `id` = ? LIMIT 1";
         $stmt = $this->connection()->prepare($sql);
-        $stmt->bind_param("i", $id);
+
+        if (!$stmt) {
+            error_log("Prepare failed: " . $this->connection()->error);
+            return [];
+        }
+
+        // i for integer, s for string
+        $type = is_numeric($id) ? 'i' : 's';
+        $stmt->bind_param($type, $id);
 
         if ($stmt->execute()) {
             $result = $stmt->get_result();
-            return $result->fetch_assoc();
+            $row = $result->fetch_assoc();
+            return $row ?: []; // make sure $row is array
+        } else {
+            error_log("Execute failed: " . $stmt->error);
         }
 
         return [];
@@ -76,5 +90,29 @@ class DummyDataQueries extends Database {
 
         return [];
     }
+
+    public function storeDataWithQueryBuilder(array $data): array
+    {        
+        $fillable = $this->model->getFillable();
+
+        // check field in fillable
+        $invalid = array_diff(array_keys($data), $fillable);
+        if (!empty($invalid)) {
+            throw new \Exception("Field does not exist: " . implode(', ', $invalid));
+        }
+
+        $filteredData = array_intersect_key($data, array_flip($fillable));
+        if (empty($filteredData)) {
+            throw new \Exception("There are no valid fields.");
+        }
+
+        $queryBuilder = new QueryBuilder();
+        $queryBuilder->table($this->model->getTable());
+        
+        $insertId = $queryBuilder->insertGetId($filteredData);
+
+        return $this->getOneData($insertId);
+    }
+
    
 }
