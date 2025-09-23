@@ -20,7 +20,6 @@ class Routing
         $method = $_SERVER['REQUEST_METHOD'];
         $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // loop semua route
         foreach ($this->routes as $route) {
             if ($route['method'] != $method) {
                 continue;
@@ -40,18 +39,23 @@ class Routing
                 ];
 
                 $callback = function($req) use ($route, $params) {
-                    // kalau callbacknya sebuah function maka jalankan, jika tidak maka jalankan controller
                     if (is_callable($route['callback'])) {
-                        return call_user_func_array($route['callback'], $params);
+                        $result = call_user_func_array($route['callback'], $params);
                     } else {
                         list($controller, $method) = $route['callback'];
                         $instance = new $controller();
-                        // return $instance->$method(...$params);
-                        echo $instance->$method(...$params);
+                        $result = $instance->$method(...$params);
                     }
+
+                    if (is_object($result) && get_class($result) === 'mysqli') {
+                        echo "Koneksi database aktif (objek mysqli)";
+                    } else {
+                        echo $result;
+                    }
+
+                    return $result;
                 };
 
-                // jalankan middleware jika menambahkan middleware
                 foreach (array_reverse($route['middlewares']) as $middleware) {
                     $instance = new $middleware();
                     $next = $callback;

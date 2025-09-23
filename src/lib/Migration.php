@@ -10,9 +10,8 @@ abstract class Migration {
 
     protected $db;
 
-    public function __construct() {
-        $database = new Database(silent: true);
-        $this->db = $database->connection();
+    public function __construct() {        
+        $db = Database::getInstance();
     }
 
     protected function executeQuery(string $query) {

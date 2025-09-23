@@ -7,7 +7,7 @@ class Controller
 {
     public function ConnectDB()
     {
-        $db = new Database();
+        $db = Database::getInstance();
         return $db->connection();
     }
 }

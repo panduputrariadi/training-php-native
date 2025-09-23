@@ -10,31 +10,6 @@ use PanduputragmailCom\PhpNative\model\queries\DummyDataQueries;
 
 class DummyDataController
 {
-    public function GetDataDummy(){
-        $dummyData = (new DummyDataQueries(new DummyData()))->getAllData();
-        if(empty($dummyData)){
-            return Response::success([], 'No Data Available');
-        }
-
-        return Response::success($dummyData, 'Success Retrive Data');
-    }
-    public function store(){
-        $data = BodyRequest::bodyData();       
-
-        $validator = new Validator($data, [
-            'name'  => 'required|string|max:50',            
-        ]);
-
-        if ($validator->fails()) {
-            return Response::badRequest(['errors' => $validator->messages()], 'Validation failed');
-        }
-
-        $dummyData = new DummyData();
-        // $response = $dummyData->storeData($data);
-        $response = (new DummyDataQueries($dummyData))->storeData($data);
-
-        return Response::created($response, 'Success Store Data');
-    }
 
     public function getDummyDataUsingQueryBuilder(): array {
         $data = (new DummyDataQueries(new DummyData()))->getAllDataUsingQueryBuilder();
@@ -45,7 +20,7 @@ class DummyDataController
         return Response::success($data, 'Success Retrive Data');
     }
 
-    public function storeWithQueryBuilder(){
+    public function storeWithQueryBuilder(): array {
         $data = BodyRequest::bodyData();
 
         $validator = new Validator($data, [
@@ -63,7 +38,7 @@ class DummyDataController
     }
 
     //this function is checking field in fillable but in controller
-    public function storeWithQueryBuilderNew(){
+    public function storeWithQueryBuilderNew(): array{
         $data = BodyRequest::bodyData();
 
         $validator = new Validator($data, [

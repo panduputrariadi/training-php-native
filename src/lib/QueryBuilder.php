@@ -1,6 +1,7 @@
 <?php
 namespace PanduputragmailCom\PhpNative\lib;
 
+use mysqli;
 use PanduputragmailCom\PhpNative\Database\Database;
 
 class QueryBuilder {
@@ -12,6 +13,15 @@ class QueryBuilder {
 
     // eager loading like orm laravel (?)
     private array $eagerLoads = [];
+    private mysqli $connection;
+
+    public function __construct(?mysqli $connection = null)
+    {
+        if ($connection === null) {
+            $connection = Database::getInstance(true)->connection();
+        }
+        $this->connection = $connection;
+    }
     
 
     public function table(string $table): self  
@@ -76,9 +86,6 @@ class QueryBuilder {
 
     public function get(): array  
     {
-        $database = new Database(silent: true);
-        $connection = $database->connection(); // mysqli instance
-        
         $sql = $this->query;
         $values = [];
 
@@ -87,9 +94,9 @@ class QueryBuilder {
             $values[] = $value;
         }
 
-        $stmt = $connection->prepare($sql);
+        $stmt = $this->connection->prepare($sql);
         if (!$stmt) {
-            throw new \Exception("Prepare failed: " . $connection->error);
+            throw new \Exception("Prepare failed: " . $this->connection->error);
         }
 
         if (!empty($values)) {            
@@ -124,9 +131,6 @@ class QueryBuilder {
 
     private function execute(): bool
     {
-        $database = new Database(silent: true);
-        $connection = $database->connection();
-
         $sql = $this->query;
         $values = $this->bindings;
 
@@ -134,9 +138,9 @@ class QueryBuilder {
             $sql = str_replace($key, '?', $sql);
         }
 
-        $stmt = $connection->prepare($sql);
+        $stmt = $this->connection->prepare($sql); // <-- pakai $this->connection
         if (!$stmt) {
-            throw new \Exception("Prepare failed: " . $connection->error);
+            throw new \Exception("Prepare failed: " . $this->connection->error);
         }
 
         if (!empty($values)) {
@@ -145,7 +149,7 @@ class QueryBuilder {
         }
 
         $success = $stmt->execute();
-        $this->resetQuery(); // bersihkan setelah eksekusi
+        $this->resetQuery();
         return $success;
     }
 
@@ -181,17 +185,14 @@ class QueryBuilder {
             $this->bindings[":$key"] = $data[$key];
         }
 
-        $database = new Database(silent: true);
-        $connection = $database->connection();
-
         $sql = $this->query;
         foreach ($this->bindings as $key => $value) {
             $sql = str_replace($key, '?', $sql);
         }
 
-        $stmt = $connection->prepare($sql);
+        $stmt = $this->connection->prepare($sql);
         if (!$stmt) {
-            throw new \Exception("Prepare failed: " . $connection->error);
+            throw new \Exception("Prepare failed: " . $this->connection->error);
         }
 
         if (!empty($this->bindings)) {
@@ -203,7 +204,7 @@ class QueryBuilder {
             throw new \Exception("Execute failed: " . $stmt->error);
         }
 
-        $insertId = $connection->insert_id;
+        $insertId = $this->connection->insert_id;
         $this->resetQuery();
 
         return $insertId;
