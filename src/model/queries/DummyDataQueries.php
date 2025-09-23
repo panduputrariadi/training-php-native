@@ -2,20 +2,24 @@
 
 namespace PanduputragmailCom\PhpNative\model\queries;
 
+use mysqli;
 use PanduputragmailCom\PhpNative\Database\Database;
 use PanduputragmailCom\PhpNative\lib\QueryBuilder;
 use PanduputragmailCom\PhpNative\Model\DummyData;
 
-class DummyDataQueries extends Database {
+class DummyDataQueries
+{
     protected $model;
+    protected mysqli $connection;
 
-    public function __construct(DummyData $model) {
-        // parent::__construct(true);
+    public function __construct(DummyData $model)
+    {
         $this->model = $model;
+        $this->connection = Database::getInstance(true)->connection();
     }
 
     public function getAllDataUsingQueryBuilder(): array {        
-        $queryBuilder = new QueryBuilder($this->connection());  
+        $queryBuilder = new QueryBuilder($this->connection());
 
         $data = $queryBuilder
             ->table($this->model->getTable())
@@ -30,10 +34,10 @@ class DummyDataQueries extends Database {
         $table = $this->model->getTable();
                 
         $sql = "SELECT * FROM `$table` WHERE `id` = ? LIMIT 1";
-        $stmt = $this->connection()->prepare($sql);
+        $stmt = $this->connection->prepare($sql);
 
         if (!$stmt) {
-            error_log("Prepare failed: " . $this->connection()->error);
+            error_log("Prepare failed: " . $this->connection->error);
             return [];
         }
 
@@ -52,23 +56,15 @@ class DummyDataQueries extends Database {
 
     public function storeDataWithQueryBuilder(array $data): array
     {        
-        $fillable = $this->model->getFillable();
-
-        $invalid = array_diff(array_keys($data), $fillable);
-        if (!empty($invalid)) {
-            throw new \Exception("Field does not exist: " . implode(', ', $invalid));
-        }
-
-        $filteredData = array_intersect_key($data, array_flip($fillable));
-        if (empty($filteredData)) {
-            throw new \Exception("There are no valid fields.");
-        }
-
-        $queryBuilder = new QueryBuilder($this->connection());
+        $queryBuilder = new QueryBuilder($this->connection);
         $queryBuilder->table($this->model->getTable());
         
-        $insertId = $queryBuilder->insertGetId($filteredData);
-
+        $insertId = $queryBuilder->insertGetId($data);
         return $this->getOneData($insertId);
-    }   
+    }
+
+    public function connection(): mysqli
+    {
+        return $this->connection;
+    }
 }

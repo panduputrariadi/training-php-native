@@ -23,7 +23,6 @@ class QueryBuilder {
         $this->connection = $connection;
     }
     
-
     public function table(string $table): self  
     {  
         $this->table = $table;  
