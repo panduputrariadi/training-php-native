@@ -71,7 +71,7 @@ class Routing
                         Response::json($result, 'OK', 200);
                     }
                 } catch (\Throwable $e) {
-                    Response::json(
+                    return Response::json(
                         [],
                         $e->getMessage(),
                         500
