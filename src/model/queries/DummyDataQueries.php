@@ -15,13 +15,13 @@ class DummyDataQueries extends Database {
     }
 
     public function getAllDataUsingQueryBuilder(): array {        
-        $queryBuilder = new QueryBuilder($this->connection());
+        $queryBuilder = new QueryBuilder($this->connection());  
 
         $data = $queryBuilder
             ->table($this->model->getTable())
             ->select(['*'])
             ->get();
-
+        
         return $data;
     }
 
@@ -70,7 +70,5 @@ class DummyDataQueries extends Database {
         $insertId = $queryBuilder->insertGetId($filteredData);
 
         return $this->getOneData($insertId);
-    }
-
-   
+    }   
 }
