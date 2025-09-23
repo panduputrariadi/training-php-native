@@ -23,11 +23,6 @@ class Response {
         self::json([], $message, 404);
     }
 
-    // public static function badRequest(string $message = 'Bad Request'){
-    //     self::json([], $message, 400);
-    // }
-
-    // send message error
     public static function badRequest($data = [], string $message = 'Bad Request'){
         self::json($data, $message, 400);
     }
@@ -35,7 +30,6 @@ class Response {
     public static function unauthorized(string $message = 'Unauthorized'){
         self::json([], $message, 401);
     }
-
 
     public static function serverError(string $message = 'Internal Server Error'){
         self::json([], $message, 500);

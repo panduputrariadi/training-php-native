@@ -10,8 +10,6 @@ class QueryBuilder {
     private array $bindings = [];
     private array $joins = [];
     private ?string $primaryKey = 'id';
-
-    // eager loading like orm laravel (?)
     private array $eagerLoads = [];
     private mysqli $connection;
 
