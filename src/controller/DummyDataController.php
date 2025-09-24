@@ -2,6 +2,7 @@
 
 namespace PanduputragmailCom\PhpNative\Controller;
 
+use PanduputragmailCom\PhpNative\enum\HttpStatus;
 use PanduputragmailCom\PhpNative\lib\BodyRequest;
 use PanduputragmailCom\PhpNative\lib\Validator;
 use PanduputragmailCom\PhpNative\Model\DummyData;
@@ -15,14 +16,14 @@ class DummyDataController
 
         if (empty($data)) {
             return [
-                'status' => 200,
+                'status' => HttpStatus::OK,
                 'message' => 'No Data Available',
                 'data' => []
             ];
         }
 
         return [
-            'status' => 200,
+            'status' => HttpStatus::OK,
             'message' => 'Success Retrieve Data',
             'data' => $data
         ];
@@ -38,7 +39,7 @@ class DummyDataController
 
         if ($validator->fails()) {
             return [
-                'status' => 400,
+                'status' => HttpStatus::BAD_REQUEST,
                 'message' => 'Validation failed',
                 'data' => ['errors' => $validator->messages()]
             ];
@@ -48,7 +49,7 @@ class DummyDataController
         $response = (new DummyDataQueries($dummyData))->storeDataWithQueryBuilder($data);
 
         return [
-            'status' => 201,
+            'status' => HttpStatus::CREATED,
             'message' => 'Success Store Data',
             'data' => $response
         ];
@@ -64,7 +65,7 @@ class DummyDataController
 
         if ($validator->fails()) {
             return [
-                'status' => 400,
+                'status' => HttpStatus::BAD_REQUEST,
                 'message' => 'Validation failed',
                 'data' => ['errors' => $validator->messages()]
             ];
@@ -75,7 +76,7 @@ class DummyDataController
 
         if (!empty($invalid)) {
             return [
-                'status' => 400,
+                'status' => HttpStatus::BAD_REQUEST,
                 'message' => 'Request contains fields that are not allowed.',
                 'data' => ['invalid_fields' => array_values($invalid)]
             ];
@@ -86,7 +87,7 @@ class DummyDataController
         $response = (new DummyDataQueries(new DummyData()))->storeDataWithQueryBuilder($filteredData);
 
         return [
-            'status' => 201,
+            'status' => HttpStatus::CREATED,
             'message' => 'Success Store Data',
             'data' => $response
         ];

@@ -6,7 +6,6 @@ class Response
 {
     public static function json($data = [], string $message = '', int|HttpStatus $statusCode = 200)
     {
-        // Jika enum, ambil valuenya
         $code = $statusCode instanceof HttpStatus ? $statusCode->value : $statusCode;
 
         http_response_code($code);

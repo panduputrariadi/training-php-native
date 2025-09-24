@@ -2,6 +2,7 @@
 
 namespace PanduputragmailCom\PhpNative\Lib;
 
+use PanduputragmailCom\PhpNative\enum\HttpStatus;
 use PanduputragmailCom\PhpNative\lib\Response; 
 
 class Routing
@@ -65,22 +66,22 @@ class Routing
                         Response::json(
                             $result['data'] ?? [],
                             $result['message'] ?? '',
-                            $result['status'] ?? 200
+                            $result['status'] ?? HttpStatus::OK
                         );
                     } else {
-                        Response::json($result, 'OK', 200);
+                        Response::json($result, 'OK', HttpStatus::OK);
                     }
                 } catch (\Throwable $e) {
                     return Response::json(
                         [],
                         $e->getMessage(),
-                        500
+                        HttpStatus::INTERNAL_ERROR
                     );
                 }
 
                 return;
             }
         }
-        Response::json([], '404 Not Found', 404);
+        Response::json([], '404 Not Found', HttpStatus::NOT_FOUND);
     }
 }

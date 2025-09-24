@@ -1,4 +1,4 @@
 /vendor/
 composer.json
 .env
-.backup
+/backup

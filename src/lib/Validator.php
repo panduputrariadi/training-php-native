@@ -8,20 +8,6 @@ class Validator
     protected array $data = [];
     protected array $rules = [];
 
-    private array $ruleHandlers = [
-        'required' => 'validateRequired',
-        'string'   => 'validateString',
-        'integer'  => 'validateInteger',
-        'boolean'  => 'validateBoolean',
-        'numeric'  => 'validateNumeric',
-        'email'    => 'validateEmail',
-        'url'      => 'validateUrl',
-        'date'     => 'validateDate',
-        'array'    => 'validateArray',
-        'max'      => 'validateMax',
-        'min'      => 'validateMin',
-    ];
-
     public function __construct(array $data, array $rules)
     {
         $this->data = $data;
@@ -43,19 +29,20 @@ class Validator
 
     private function applyRule(string $field, string $rule): void
     {
+        $param = null;
         if (str_contains($rule, ':')) {
             [$ruleName, $param] = explode(':', $rule, 2);
         } else {
             $ruleName = $rule;
-            $param = null;
         }
 
-        if (!isset($this->ruleHandlers[$ruleName])) {
+        $methodName = 'validate' . ucfirst($ruleName);
+
+        if (!method_exists($this, $methodName)) {
             throw new \InvalidArgumentException("Validation rule [{$ruleName}] is not supported.");
         }
 
-        $method = $this->ruleHandlers[$ruleName];
-        $this->$method($field, $param);
+        $this->$methodName($field, $param);
     }
 
     private function validateRequired(string $field, ?string $param = null): void
@@ -136,7 +123,6 @@ class Validator
 
         $max = (int)$param;
         $value = $this->data[$field] ?? null;
-
         if ($value === null) return;
 
         if (is_string($value)) {
@@ -156,7 +142,6 @@ class Validator
 
         $min = (int)$param;
         $value = $this->data[$field] ?? null;
-
         if ($value === null) return;
 
         if (is_string($value)) {
