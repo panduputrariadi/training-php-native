@@ -19,7 +19,7 @@ class DummyDataQueries
     }
 
     public function getAllDataUsingQueryBuilder(): array {        
-        $queryBuilder = new QueryBuilder($this->connection());
+        $queryBuilder = new QueryBuilder($this->connection);
 
         $data = $queryBuilder
             ->table($this->model->getTable())
@@ -31,27 +31,13 @@ class DummyDataQueries
 
     public function getOneData($id): array
     {
-        $table = $this->model->getTable();
-                
-        $sql = "SELECT * FROM `$table` WHERE `id` = ? LIMIT 1";
-        $stmt = $this->connection->prepare($sql);
+        $result = (new QueryBuilder($this->connection))
+            ->table($this->model->getTable())
+            ->select()
+            ->where('id', '=', $id)
+            ->first();
 
-        if (!$stmt) {
-            error_log("Prepare failed: " . $this->connection->error);
-            return [];
-        }
-
-        $type = is_numeric($id) ? 'i' : 's';
-        $stmt->bind_param($type, $id);
-
-        if ($stmt->execute()) {
-            $result = $stmt->get_result();
-            $row = $result->fetch_assoc();
-            return $row ?: [];
-        } else {
-            error_log("Execute failed: " . $stmt->error);
-        }      
-        return [];
+        return $result ?: [];
     }
 
     public function storeDataWithQueryBuilder(array $data): array
@@ -64,6 +50,17 @@ class DummyDataQueries
     }
 
     public function connection(): mysqli
+    {
+        return $this->connection;
+    }
+
+    public function debugConnectionInfo(): void
+    {
+        echo "Connection in DummyDataQueries: " . spl_object_hash($this->connection) . "\n";
+        echo "Thread ID: " . $this->connection->thread_id . "\n";
+    }
+
+    public function getConnection(): mysqli
     {
         return $this->connection;
     }
