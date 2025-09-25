@@ -2,79 +2,66 @@
 
 namespace PanduputragmailCom\PhpNative\model\queries;
 
+use mysqli;
 use PanduputragmailCom\PhpNative\Database\Database;
 use PanduputragmailCom\PhpNative\lib\QueryBuilder;
 use PanduputragmailCom\PhpNative\Model\DummyData;
 
-class DummyDataQueries extends Database {
+class DummyDataQueries
+{
     protected $model;
+    protected mysqli $connection;
 
-    public function __construct(DummyData $model) {
-        parent::__construct(true);
+    public function __construct(DummyData $model)
+    {
         $this->model = $model;
+        $this->connection = Database::getInstance(true)->connection();
     }
 
-    public function getAllData() {
-        $sql = "SELECT * FROM {$this->model->getTable()}";
-        $result = $this->connection()->query($sql);
-
-        if ($result->num_rows > 0) {
-            $data = [];
-            while ($row = $result->fetch_assoc()) {
-                $data[] = $row;
-            }
-            return $data;
-        }
-
-        return [];
-    }
-
-    public function getAllDataUsingQueryBuilder(): array {
-        $queryBuilder = new QueryBuilder();
+    public function getAllDataUsingQueryBuilder(): array {        
+        $queryBuilder = new QueryBuilder($this->connection);
 
         $data = $queryBuilder
             ->table($this->model->getTable())
             ->select(['*'])
             ->get();
-
+        
         return $data;
     }
 
-    public function getOneData($id) {
-        $sql = "SELECT * FROM {$this->model->getTable()} WHERE id = ?";
-        $stmt = $this->connection()->prepare($sql);
-        $stmt->bind_param("i", $id);
+    public function getOneData($id): array
+    {
+        $result = (new QueryBuilder($this->connection))
+            ->table($this->model->getTable())
+            ->select()
+            ->where('id', '=', $id)
+            ->first();
 
-        if ($stmt->execute()) {
-            $result = $stmt->get_result();
-            return $result->fetch_assoc();
-        }
-
-        return [];
+        return $result ?: [];
     }
 
-    public function storeData($data) {           
-        $fillable = $this->model->getFillable();
-        $filteredData = array_intersect_key($data, array_flip($fillable));
-
-        if (empty($filteredData)) {
-            throw new \Exception("No valid fields provided");
-        }
-
-        $columns = implode(", ", array_keys($filteredData));
-        $placeholders = implode(", ", array_fill(0, count($filteredData), "?"));
-
-        $sql = "INSERT INTO {$this->model->getTable()} ($columns) VALUES ($placeholders)";
-        $stmt = $this->connection()->prepare($sql);
-
-        $types = str_repeat("s", count($filteredData));
-        $stmt->bind_param($types, ...array_values($filteredData));
-
-        if ($stmt->execute()) {
-            return $this->getOneData($this->connection()->insert_id);
-        }
-
-        return [];
+    public function storeDataWithQueryBuilder(array $data): array
+    {        
+        $queryBuilder = new QueryBuilder($this->connection);
+        $queryBuilder->table($this->model->getTable());
+        
+        $insertId = $queryBuilder->insertGetId($data);
+        return $this->getOneData($insertId);
     }
-   
+
+    public function connection(): mysqli
+    {
+        return $this->connection;
+    }
+
+    public function debugConnectionInfo(): void
+    {
+        echo "Connection in DummyDataQueries: " . spl_object_hash($this->connection) . "\n";
+        echo "Thread ID: " . $this->connection->thread_id . "\n";
+    }
+
+    public function getConnection(): mysqli
+    {
+        return $this->connection;
+    }
 }

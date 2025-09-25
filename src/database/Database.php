@@ -6,9 +6,10 @@ use PanduputragmailCom\PhpNative\lib\LoadEnv;
 
 class Database
 {
+    private static $instance = null;
     private $connection;
 
-    public function __construct($silent = false){
+    private function __construct($silent = false){
         LoadEnv::loadEnv(__DIR__ . '/../../.env');  
         $host     = getenv('DB_HOST');
         $username = getenv('DB_USER');
@@ -30,14 +31,29 @@ class Database
 
         $this->connection = $connect;
 
-        // echo "Berhasil terkoneksi";
         if(!$silent){
-            echo "berhasil terkoneksi";
+            echo "[KONEKSI BARU DIBUAT] - " . date('H:i:s') . " - PID: " . getmypid() . "\n";
         }
+    }
+
+    public static function getInstance($silent = false): self
+    {
+        if (self::$instance === null) {
+            self::$instance = new self($silent);
+        }
+        return self::$instance;
     }
 
     public function connection()
     {
         return $this->connection;
+    }
+
+    public function close()
+    {
+        if ($this->connection) {
+            $this->connection->close();
+            $this->connection = null;
+        }
     }
 }

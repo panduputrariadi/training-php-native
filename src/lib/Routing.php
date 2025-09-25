@@ -2,11 +2,13 @@
 
 namespace PanduputragmailCom\PhpNative\Lib;
 
+use PanduputragmailCom\PhpNative\enum\HttpStatus;
+use PanduputragmailCom\PhpNative\lib\Response; 
+
 class Routing
 {
     private $routes = [];
 
-    // menambahkan array dari middleware
     public function add(string $method, string $path, $callback, array $middlewares = []){
         $this->routes[] = [
             'method'      => $method,
@@ -20,7 +22,6 @@ class Routing
         $method = $_SERVER['REQUEST_METHOD'];
         $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        // loop semua route
         foreach ($this->routes as $route) {
             if ($route['method'] != $method) {
                 continue;
@@ -40,31 +41,47 @@ class Routing
                 ];
 
                 $callback = function($req) use ($route, $params) {
-                    // kalau callbacknya sebuah function maka jalankan, jika tidak maka jalankan controller
                     if (is_callable($route['callback'])) {
                         return call_user_func_array($route['callback'], $params);
                     } else {
                         list($controller, $method) = $route['callback'];
                         $instance = new $controller();
-                        // return $instance->$method(...$params);
-                        echo $instance->$method(...$params);
+                        return $instance->$method(...$params); 
                     }
                 };
 
-                // jalankan middleware jika menambahkan middleware
                 foreach (array_reverse($route['middlewares']) as $middleware) {
                     $instance = new $middleware();
                     $next = $callback;
                     $callback = function($req) use ($instance, $next) {
-                        return $instance->handle($req, $next);
+                        $result = $instance->handle($req, $next);
+                        return $result;
                     };
                 }
 
-                return $callback($request);
+                try {
+                    $result = $callback($request);
+
+                    if (is_array($result) && isset($result['status'])) {
+                        Response::json(
+                            $result['data'] ?? [],
+                            $result['message'] ?? '',
+                            $result['status'] ?? HttpStatus::OK
+                        );
+                    } else {
+                        Response::json($result, 'OK', HttpStatus::OK);
+                    }
+                } catch (\Throwable $e) {
+                    return Response::json(
+                        [],
+                        $e->getMessage(),
+                        HttpStatus::INTERNAL_ERROR
+                    );
+                }
+
+                return;
             }
         }
-        
-        http_response_code(404);
-        echo "404 Not Found";
+        Response::json([], '404 Not Found', HttpStatus::NOT_FOUND);
     }
 }

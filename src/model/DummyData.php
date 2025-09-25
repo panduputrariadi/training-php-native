@@ -2,15 +2,14 @@
 
 namespace PanduputragmailCom\PhpNative\Model;
 
-class DummyData{
+use PanduputragmailCom\PhpNative\master\MasterModel;
+
+class DummyData extends MasterModel{
     protected $table = 'dummy_data';
-    protected $fillable = ['name'];
+    protected array $fillable = ['name'];
 
-    public function getTable() {
+    public function getTable(): string
+    {
         return $this->table;
-    }
-
-    public function getFillable() {
-        return $this->fillable;
     }
 }
